@@ -1,37 +1,66 @@
-"""Stateless reusable utilities; these do not need a class."""
+def isLeap(d:str):
+    d = d.split("/")
+    y = int(d[2])
+    return (y % 4 == 0 and y % 100 != 0) or (y % 400 == 0)
 
-def isLeap(date: str):
-    year = int(date.split('/')[2])
-    return year % 400 == 0 or (year % 4 == 0 and year % 100 != 0)
+def dateToDays(d:str):
+    m = [0, 31, 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31]
+    if isLeap(d):
+        m[2] = 29
+    d = d.split("/")
+    days = int(d[0])
+    months = int(d[1])
+    years = int(d[2]) - 1
+    for i in range (1, months):
+        days += m[i]
+    days += years * 365 + years // 4 - years // 100 + years // 400
+    return days
 
+#
 
-def dateToDays(date: str):
-    parts = date.split('/')
-    day, month, year = (int(p.strip()) for p in parts)
-    lengths = [0, 31, 28 + int(isLeap(date)), 31, 30, 31, 30, 31, 31, 30, 31, 30, 31]
-    completed = year - 1
-    return (day + sum(lengths[1:month]) + completed * 365 +
-            completed // 4 - completed // 100 + completed // 400)
+def normalizeDate(d):
+    d = d.split("/")
+    return d[0].strip() + "/" + d[1].strip() + "/" + d[2].strip()
 
+def isDate(d):
+    """
+    Raises ValueError for invalid read dates, or return the normalized version if they're valid
+    :param d:
+    :return:
+    """
+    m = [0, 31, 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31]
+    day = month = year = normalized = None
+    ok = True
 
-def normalizeDate(date):
-    return '/'.join(piece.strip() for piece in date.split('/'))
+    d = d.split("/")
+    if len(d) != 3:
+        ok = False
+    else:
 
+        d[0] = d[0].strip()
+        d[1] = d[1].strip()
+        d[2] = d[2].strip()
+        if not d[0].isdigit() or not d[1].isdigit() or not d[2].isdigit():
+            ok = False
+        else:
+            day = int(d[0])
+            month = int(d[1])
+            year = int(d[2])
+            if not 1 <= month <= 12:
+                ok = False
+            else:
+                normalized = d[0] + "/" + d[1] + "/" + d[2]
+                if isLeap(normalized):
+                    m[2] = 29
+                if not (1 <= day <= m[month]) or year < 1:
+                    ok = False
 
-def isDate(date):
-    parts = date.split('/') if isinstance(date, str) else []
-    if len(parts) != 3 or not all(part.strip().isascii() and part.strip().isdigit() for part in parts):
-        return False
-    day, month, year = (int(part.strip()) for part in parts)
-    if not (1 <= month <= 12 and year >= 1):
-        return False
-    lengths = [0, 31, 28 + int(isLeap(normalizeDate(date))), 31, 30, 31, 30, 31, 31, 30, 31, 30, 31]
-    return 1 <= day <= lengths[month]
-
+    return ok
 
 def isId(x):
-    return isinstance(x, str) and x.strip().isascii() and x.strip().isdigit()
-
+    x = x.strip()
+    return x.isdigit()
 
 def isDatePair(d):
+    #d is a tuple
     return dateToDays(d[0]) <= dateToDays(d[1])

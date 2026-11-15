@@ -1,7 +1,10 @@
-class CommandHandler:
-    def __init__(self, repositories):
-        self.repos = repositories
-        # (command, expected arguments, types of arguments)
+from repository import RepositoryManager
+
+class commandHandler():
+    def __init__(self, repos):
+        self.repos = repos
+    #(command, expected arguments, types of arguments)
+
         self.commands = {
             "help": (self.help, 0, ""),
             "exit": (self.endProgram, 0, ""),
@@ -24,40 +27,42 @@ class CommandHandler:
 
     def help(self):
         print("""
-    help - it's this one!
-    exit #exits the program
-    add movie; [title]; [genre]; [desc]; [copies]
-    delete movie; [id]
-    edit movie; [id]; [new title]; [new genre]; [new desc]; [new copies]
-    add client; [name]; [cnp]
-    delete client; [id]
-    edit client; [id]; [name]; [cnp]
-    add rental; [rented movie ID]; [client ID]; [start date]; [due date] #dates must be in the dd/mm/yyyy format!
-    delete rental; [id]
-    edit rental; [id]; [new movie ID]; [new client ID]; [new start date]; [new due date]
-    undoM #undoes the last operation done on movies
-    undoC #undoes the last operation done on clients
-    undoR #undoes the last operation done on rentals
-    show movies
-    show clients
-    show rentals
-    """)
+            help - it's this one!
+            exit #exits the program
+            add movie; [title]; [genre]; [desc]; [copies]
+            delete movie; [id]
+            edit movie; [id]; [new title]; [new genre]; [new desc]; [new copies]
+            add client; [name]; [cnp]
+            delete client; [id]
+            edit client; [id]; [name]; [cnp]
+            add rental; [rented movie ID]; [client ID]; [start date]; [due date] #dates must be in the dd/mm/yyyy format!
+            delete rental; [id]
+            edit rental; [id]; [new movie ID]; [new client ID]; [new start date]; [new due date]
+            undoM #undoes the last operation done on movies
+            undoC #undoes the last operation done on clients
+            undoR #undoes the last operation done on rentals
+            show movies #shows all the movies
+            show clients #shows all the clients
+            show rentals #guess what it does?
+            """)
+
+    def executeCommand(self, cmd, args):
+        return self.commands[cmd][0](*args)
 
     def endProgram(self):
         print("Talofa!")
-        return False  # Lets the UI exit its input loop.
+        exit()
 
     def addM(self, title, genre, desc, copies):
         self.repos.movies.addMovie(title, genre, desc, copies)
-        print("Movied added successfully!")
 
     def deleteM(self, id):
         self.repos.movies.deleteMovie(id, self.repos.rentals)
-        print("Movied deleted successfully!")
+        print("Movie deleted successfully!")
 
     def editM(self, id, ntitle, ngenre, ndesc, ncopies):
         self.repos.movies.modifyMovie(id, ntitle, ngenre, ndesc, ncopies)
-        print("Movied edited successfully!")
+        print("Movie edited successfully!")
 
     def addC(self, name, cnp):
         self.repos.clients.addClient(name, cnp)
@@ -113,5 +118,10 @@ class CommandHandler:
         for id in rentals:
             print(self.repos.rentals.getRentalById(id))
 
-    def executeCommand(self, cmd, args):
-        return self.commands[cmd][0](*args)
+
+
+
+
+
+
+

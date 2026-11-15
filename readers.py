@@ -1,7 +1,7 @@
 from helpers import normalizeDate
 
 
-class InputReader:
+class Readers:
     def __init__(self, validator):
         self.validator = validator
 
@@ -32,3 +32,4 @@ class InputReader:
         s = s.strip()
         self.validator.validateCommand(s)
         return s
+

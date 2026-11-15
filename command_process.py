@@ -1,4 +1,5 @@
-class CommandProcessor:
+class Processor():
+
     def __init__(self, commands, readers):
         self.commands = commands
         self.readers = readers
@@ -32,3 +33,5 @@ class CommandProcessor:
                 i += 1
 
         return result  # a list of all normalized and validated arguments
+
+
