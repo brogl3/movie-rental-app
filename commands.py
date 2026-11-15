@@ -1,10 +1,29 @@
-from repository import addMovie, deleteMovie, modifyMovie, addClient, deleteClient, modifyClient, addRental, \
-    deleteRental, modifyRental, undoM, undoC, undoR, getAllMovies, getMovieById, getAllClients, getClientById, \
-    getAllRentals, getRentalById
+class CommandHandler:
+    def __init__(self, repositories):
+        self.repos = repositories
+        # (command, expected arguments, types of arguments)
+        self.commands = {
+            "help": (self.help, 0, ""),
+            "exit": (self.endProgram, 0, ""),
+            "add movie": (self.addM, 4, "NNNI"),
+            "delete movie": (self.deleteM, 1, "m"),
+            "edit movie": (self.editM, 5, "mNNNI"),
+            "add client": (self.addC, 2, "NN"),
+            "delete client": (self.deleteC, 1, "c"),
+            "edit client": (self.editC, 3, "cNN"),
+            "add rental": (self.addR, 4, "mcP"),
+            "delete rental": (self.deleteR, 1, "r"),
+            "edit rental": (self.editR, 5, "rmcP"),
+            "undoR": (self.undoRc, 0, ""),
+            "undoM": (self.undoMc, 0, ""),
+            "undoC": (self.undoCc, 0, ""),
+            "show movies": (self.showMovies, 0, ""),
+            "show clients": (self.showClients, 0, ""),
+            "show rentals": (self.showRentals, 0, "")
+        }
 
-
-def help():
-    print("""
+    def help(self):
+        print("""
     help - it's this one!
     exit #exits the program
     add movie; [title]; [genre]; [desc]; [copies]
@@ -19,107 +38,80 @@ def help():
     undoM #undoes the last operation done on movies
     undoC #undoes the last operation done on clients
     undoR #undoes the last operation done on rentals
+    show movies
+    show clients
+    show rentals
     """)
 
-def endProgram():
-    print("Talofa!")
-    exit()
+    def endProgram(self):
+        print("Talofa!")
+        return False  # Lets the UI exit its input loop.
 
-def addM(title, genre, desc, copies):
-    addMovie(title, genre, desc, copies)
-    print("Movied added successfully!")
+    def addM(self, title, genre, desc, copies):
+        self.repos.movies.addMovie(title, genre, desc, copies)
+        print("Movied added successfully!")
 
-def deleteM(id):
-    deleteMovie(id)
-    print("Movied deleted successfully!")
+    def deleteM(self, id):
+        self.repos.movies.deleteMovie(id, self.repos.rentals)
+        print("Movied deleted successfully!")
 
-def editM(id, ntitle, ngenre, ndesc, ncopies):
-    modifyMovie(id, ntitle, ngenre, ndesc, ncopies)
-    print("Movied edited successfully!")
+    def editM(self, id, ntitle, ngenre, ndesc, ncopies):
+        self.repos.movies.modifyMovie(id, ntitle, ngenre, ndesc, ncopies)
+        print("Movied edited successfully!")
 
-def addC(name, cnp):
-    addClient(name, cnp)
-    print("Client added successfully!")
+    def addC(self, name, cnp):
+        self.repos.clients.addClient(name, cnp)
+        print("Client added successfully!")
 
-def deleteC(id):
-    deleteClient(id)
-    print("Client deleted successfully!")
+    def deleteC(self, id):
+        self.repos.clients.deleteClient(id, self.repos.rentals)
+        print("Client deleted successfully!")
 
-def editC(id, nname, ncnp):
-    modifyClient(id, nname, ncnp)
-    print("Client edited successfully!")
+    def editC(self, id, nname, ncnp):
+        self.repos.clients.modifyClient(id, nname, ncnp)
+        print("Client edited successfully!")
 
-def addR(m, c, sd, dd):
-    addRental(m, c, sd, dd)
-    print("Rental added successfully!")
+    def addR(self, m, c, sd, dd):
+        self.repos.rentals.addRental(m, c, sd, dd)
+        print("Rental added successfully!")
 
-def deleteR(id):
-    deleteRental(id)
-    print("Rental deleted successfully!")
+    def deleteR(self, id):
+        self.repos.rentals.deleteRental(id)
+        print("Rental deleted successfully!")
 
-def editR(id, m, c, sd, dd):
-    modifyRental(id, m, c, sd, dd)
-    print("Rental edited successfully!")
+    def editR(self, id, m, c, sd, dd):
+        self.repos.rentals.modifyRental(id, m, c, sd, dd)
+        print("Rental edited successfully!")
 
-def undoMc():
-    if not undoM():
-        raise ValueError("Nothing to undo!")
+    def undoMc(self):
+        return self.repos.movies.undoM(self.repos.rentals)
 
+    def undoCc(self):
+        return self.repos.clients.undoC(self.repos.rentals)
 
+    def undoRc(self):
+        return self.repos.rentals.undoR()
 
-def undoCc():
-    if not undoC():
-        raise ValueError("Nothing to undo!")
+    def getParams(self, cmd):
+        return self.commands[cmd][1], self.commands[cmd][2]
 
-def undoRc():
-    if not undoR():
-        raise ValueError("Nothing to undo!")
+    def getCommands(self):
+        return list(self.commands.keys())
 
-def getParams(cmd):
-    return commands[cmd][1], commands[cmd][2]
+    def showMovies(self):
+        movies = self.repos.movies.getAllMovies()
+        for id in movies:
+            print(self.repos.movies.getMovieById(id))
 
-def getCommands():
-    return list(commands.keys())
+    def showClients(self):
+        clients = self.repos.clients.getAllClients()
+        for id in clients:
+            print(self.repos.clients.getClientById(id))
 
-def showMovies():
-    movies = getAllMovies()
-    for id in movies:
-        print(getMovieById(id))
+    def showRentals(self):
+        rentals = self.repos.rentals.getAllRentals()
+        for id in rentals:
+            print(self.repos.rentals.getRentalById(id))
 
-def showClients():
-    clients = getAllClients()
-    for id in clients:
-        print(getClientById(id))
-
-def showRentals():
-    rentals = getAllRentals()
-    for id in rentals:
-        print(getRentalById(id))
-
-
-# (command, expected arguments, types of arguments)
-commands = {
-    "help": (help, 0, ""),
-    "exit": (endProgram, 0, ""),
-    "add movie" : (addM, 4, "NNNI"),
-    "delete movie" : (deleteM, 1, "m"),
-    "edit movie": (editM, 5, "mNNNI"),
-    "add client": (addC, 2, "NN"),
-    "delete client": (deleteC, 1, "c"),
-    "edit client": (editC, 3, "cNN"),
-    "add rental": (addR, 4, "mcP"),
-    "delete rental": (deleteR, 1, "r"),
-    "edit rental": (editR, 5, "rmcP"),
-    "undoR": (undoRc, 0, ""),
-    "undoM": (undoMc, 0, ""),
-    "undoC": (undoCc, 0, ""),
-    "show movies" : (showMovies, 0, ""),
-    "show clients" : (showClients, 0, ""),
-    "show rentals" : (showRentals, 0, "")
-
-
-}
-
-def executeCommand(cmd, args):
-    return commands[cmd][0](*args)
-
+    def executeCommand(self, cmd, args):
+        return self.commands[cmd][0](*args)

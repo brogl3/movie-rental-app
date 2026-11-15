@@ -1,52 +1,44 @@
-from command_process import process
-from commands import executeCommand
-from readers import readCommand
+class ConsoleUI:
+    def __init__(self, commands, processor, readers):
+        self.commands = commands
+        self.processor = processor
+        self.readers = readers
 
+    def parse(self, cmd):
+        parts = [part.strip() for part in cmd.split(";")]
+        return parts[0], parts[1:]
 
-##################
-#parsing and argument interpreting
-def parse(cmd):
-    parts = [part.strip() for part in cmd.split(";")]
-    return parts[0], parts[1:]
+    def getArguments(self, parts):
+        return parts[1]
 
-def getArguments(parts):
-    """
-    NEEDS A PARSED COMMAND
-    :param parts:
-    :return:
-    """
-    return parts[1]
+    def getCommand(self, parts):
+        return parts[0]
 
-def getCommand(parts):
-    """
-    NEEDS A PARSED COMMAND
-    :param parts:
-    :return:
-    """
-    return parts[0]
+    def readInput(self, cmd):
+        cmd = self.parse(cmd)
+        command = self.readers.readCommand(self.getCommand(cmd))
+        args = self.processor.process(cmd)
+        return command, args
 
-
-def readInput(cmd):
-    cmd = parse(cmd)
-    command = readCommand(getCommand(cmd))
-    args = process(cmd)
-
-    return command, args
-
-
-# input(cmd) -> cmd = parse(cmd) -> process command, process arguments...
-###################
-
-def runUi():
-    while True:
+    def runUi(self):
         print("""
 Movie rentals management system
 
 type [help] for a list of commands and accepted arguments
 """)
-        try:
-            userInput = input(">>> ")
-            command, args = readInput(userInput)
-            executeCommand(command, args)
-        except ValueError as e:
-            print(e)
+        while True:
+            try:
+                userInput = input(">>> ")
+                command, args = self.readInput(userInput)
+                if self.commands.executeCommand(command, args) is False:
+                    break
+            except ValueError as e:
+                print(e)
+            except (EOFError, KeyboardInterrupt):
+                print("\nTalofa!")
+                break
+
+    # Helpful for testing a single command without running input() in a loop.
+    def executeInput(self, cmd):
+        command, args = self.readInput(cmd)
+        return self.commands.executeCommand(command, args)
